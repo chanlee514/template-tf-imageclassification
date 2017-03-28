@@ -1,0 +1,12 @@
+.DS_Store
+
+/target
+/tensorflow
+/data/*
+!/data/download.sh
+/src/main/resources
+/project/project
+/project/target
+
+pio.log
+.ideas
