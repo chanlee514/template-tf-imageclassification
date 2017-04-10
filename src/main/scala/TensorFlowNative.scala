@@ -2,7 +2,8 @@
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
+ * The ASF licenses this file to You under the Apache License,
+ Version 2.0
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
  *
@@ -23,11 +24,21 @@ trait TensorFlowNative extends Library {
 
   def tfCreateSession(modelPath: String): Pointer
 
-  def tfRunString(session: Pointer, inputLayer: String, outputLayer: String, data: Array[Byte], size: Int, result: Array[Float]): Int
+  def tfRunString(
+    session: Pointer,
+    inputLayer: String,
+    outputLayer: String,
+    data: Array[Byte],
+    size: Int,
+    result: Array[Float]): Int
 
-  //def tfGetOutputSize(session: Pointer, outputLayer: String): Int
-
-  def tfRunFloatArray(session: Pointer, inputLayer: String, outputLayer: String, data: Array[Float], size: Int, result: Array[Float]): Int
+  def tfRunFloatArray(
+    session: Pointer,
+    inputLayer: String,
+    outputLayer: String,
+    data: Array[Float],
+    size: Int,
+    result: Array[Float]): Int
 
   def tfCloseSession(session: Pointer): Unit
 
