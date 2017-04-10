@@ -1,0 +1,23 @@
+{
+  "id": "default",
+  "description": "Default settings",
+  "engineFactory": "org.template.tensorflow.TensorflowEngine",
+  "datasource": {
+    "params" : {
+      "appName": "TFApp1"
+    }
+  },
+  "algorithms": [
+    {
+      "name": "tf",
+      "params": {
+        "inputLayer": "DecodeJpeg/contents:0",
+        "outputLayer": "softmax:0",
+        "modelFilename": "classify_image_graph_def.pb",
+        "idToStringIdMap": "data/imagenet_2012_challenge_label_map_proto.pbtxt",
+        "stringIdToLabelMap": "data/imagenet_synset_to_human_label_map.txt",
+        "imageDir": "data/images"
+      }
+    }
+  ]
+}
