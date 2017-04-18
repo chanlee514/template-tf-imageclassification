@@ -16,14 +16,18 @@ case class Query(
   * prediction confidence.
   */
 case class PredictedResult(
-  category: String,
+  labelId: Integer,
+  categories: String,
   confidence: Double
 ) extends Serializable
 
 /** Define ActualResult class which serves as a wrapper
   * for an observation's true class label.
   */
-case class ActualResult(category: String) extends Serializable
+case class ActualResult(
+  labelId: Integer,
+  categories: Array[String]
+) extends Serializable
 
 
 /** Define Engine */

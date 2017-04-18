@@ -28,6 +28,10 @@ if [[ "$OS" = "Darwin" ]]; then
 fi
 mkdir -p `dirname $LIB`
 
+echo -e "\033[1;32mCopying resources for build... \033[0m"
+mkdir -p tensorflow/tensorflow/jna
+cp src/main/cpp/* tensorflow/tensorflow/jna
+
 echo -e "\033[1;32mBuilding Tensorflow using Bazel. This will take a while... \033[0m"
 pushd $PWD/tensorflow
 bazel build --config opt //tensorflow/jna:libtensorflow.so
