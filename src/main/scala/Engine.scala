@@ -25,8 +25,7 @@ case class PredictedResult(
   * for an observation's true class label.
   */
 case class ActualResult(
-  labelId: Integer,
-  categories: Array[String]
+  labelId: Integer
 ) extends Serializable
 
 

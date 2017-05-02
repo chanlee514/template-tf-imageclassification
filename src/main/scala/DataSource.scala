@@ -16,27 +16,18 @@ import java.nio.file.{Paths, Files}
 import scala.collection.JavaConversions._
 import scala.io.Source
 
-case class DataSourceParams(
-  appName: String,
-  labelMapFile: String,
-  categoryMapFile: String,
-  evalK: Option[Int]
-) extends Params
+object DataSourceUtils {
+  def categoryMap(
+    idToStringIdMap: String,
+    stringIdToLabelMap: String): Map[Int, String] = {
 
-class DataSource (
-  val dsp : DataSourceParams
-) extends PDataSource[TrainingData, EmptyEvaluationInfo, Query, ActualResult] {
-
-  @transient lazy val logger = Logger[this.type]
-
-  def idToCategories: Map[Int, Array[String]] = {
     // ex: n02510455 => ["giant panda", "panda", "panda bear", ...]
-    val lm = Source.fromFile(dsp.categoryMapFile).getLines.toList
+    val lm = Source.fromFile(stringIdToLabelMap).getLines.toList
       .map(_.split("\\s+", 2))
-      .map { case Array(s, l) => (s.trim, l.trim.split(", ")) }
+      .map { case Array(s, l) => (s.trim, l.trim) }
       .toMap
     // ex: 169 => ["giant panda", "panda", "panda bear", ...]
-    Source.fromFile(dsp.labelMapFile).getLines.toList
+    Source.fromFile(idToStringIdMap).getLines.toList
       .dropWhile(_.trim.startsWith("#"))
       .grouped(4)
       .map { grouped =>
@@ -46,15 +37,26 @@ class DataSource (
       }
       .toMap
   }
+}
+
+case class DataSourceParams(
+  appName: String,
+  labelMapFile: String,
+  categoryMapFile: String,
+  evalK: Option[Int]
+) extends Params
+
+class DataSource (
+  val dsp: DataSourceParams
+) extends PDataSource[TrainingData, EmptyEvaluationInfo, Query, ActualResult] {
+
+  @transient lazy val logger = Logger[this.type]
 
   /** Helper function used to store data given a SparkContext. */
   private def readEventData(sc: SparkContext) : RDD[Observation] = {
     //Get RDD of Events.
     PEventStore.find(
-      appName = dsp.appName,
-      entityType = Some("image"), // specify data entity type
-      eventNames = Some(List("image")) // specify data event name
-
+      appName = dsp.appName
       // Convert collected RDD of events to and RDD of Observation
       // objects.
     )(sc).map(e => {
@@ -62,11 +64,10 @@ class DataSource (
       Observation(
         e.properties.get[String]("filename"),
         cl,
-        idToCategories(cl).mkString(",")
+        ""
       )
     }).cache
   }
-
 
   /** Read in data and stop words from event server
     * and store them in a TrainingData instance.
@@ -75,32 +76,6 @@ class DataSource (
   def readTraining(sc: SparkContext): TrainingData = {
     new TrainingData(readEventData(sc))
   }
-
-  // /** Used for evaluation: reads in event data and creates cross-validation folds. */
-  // override
-  // def readEval(sc: SparkContext):
-  // Seq[(TrainingData, EmptyEvaluationInfo, RDD[(Query, ActualResult)])] = {
-  //   // Zip your RDD of events read from the server with indices
-  //   // for the purposes of creating our folds.
-  //   val data = readEventData(sc).zipWithIndex()
-  //   // Create cross validation folds by partitioning indices
-  //   // based on their index value modulo the number of folds.
-  //   (0 until dsp.evalK.get).map { k =>
-  //     // Prepare training data for fold.
-  //     val train = new TrainingData(
-  //       data.filter(_._2 % dsp.evalK.get != k).map(_._1),
-  //       readStopWords
-  //         ((sc)))
-
-  //     // Prepare test data for fold.
-  //     val test = data.filter(_._2 % dsp.evalK.get == k)
-  //       .map(_._1)
-  //       .map(e => (new Query(e.text), new ActualResult(e.category)))
-
-  //     (train, new EmptyEvaluationInfo, test)
-  //   }
-  // }
-
 }
 
 /** Observation class serving as a wrapper for both our
@@ -114,22 +89,6 @@ case class Observation(
 
 class TrainingData(
   val data : RDD[Observation]
-) extends Serializable with SanityCheck {
-
-  /** Sanity check to make sure your data is being fed in correctly. */
-  def sanityCheck(): Unit = {
-    try {
-      println()
-    } catch {
-      case (e : ArrayIndexOutOfBoundsException) => {
-        println()
-        println("Data set is empty, make sure event fields match imported data.")
-        println()
-      }
-    }
-
-  }
-
-}
+) extends Serializable {}
 
 

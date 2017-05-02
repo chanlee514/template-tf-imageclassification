@@ -1,50 +1,47 @@
+/*
+Wrapper around TensorflowNative.scala
+*/
+
 package org.template.tensorflow
 
-class TensorFlow(modelPath: String, maxSize: Int) {
+class TensorFlow(
+  modelPath: String,
+  maxSize: Int = 2048) {
 
-  def this(modelPath: String) = this(modelPath, 2048)
+  private var session = TensorFlowNative.native.tfCreateSession(modelPath)
 
-  private var session = TensorFlowNative.tensorFlowNative.tfCreateSession(modelPath)
+  def runBytes(
+    inputLayer: String,
+    outputLayer: String,
+    data: Array[Byte],
+    expectedOutputSize: Int = maxSize): Array[Float] = {
 
-  def reload(modelPath: String): Unit = {
-    val oldSession = session
-    session = TensorFlowNative.tensorFlowNative.tfCreateSession(modelPath)
+    val result = new Array[Float](expectedOutputSize)
+    val outputSize = TensorFlowNative.native.tfRunString(
+      session, inputLayer, outputLayer, data, data.length, result)
 
-    // cleanup after 10 sec.
-    new Thread(new Runnable {
-      override def run(): Unit = {
-        Thread.sleep(10000)
-        TensorFlowNative.tensorFlowNative.tfCloseSession(oldSession)
-      }
-    }).start()
+    result.take(outputSize)
   }
 
-  def run(inputLayer: String, outputLayer: String, data: Array[Byte]): Array[Float] =
-    run(inputLayer, outputLayer, data, -1)
+  def runFloats(
+    inputLayer: String,
+    outputLayer: String,
+    data: Array[Float],
+    expectedOutputSize: Int = maxSize): Array[Float] = {
 
-  def run(inputLayer: String, outputLayer: String, data: Array[Byte], expectedOutputSize: Int): Array[Float] = {
-    val result = new Array[Float](if(expectedOutputSize == -1) maxSize else expectedOutputSize)
-    val outputSize = TensorFlowNative.tensorFlowNative.tfRunString(session, inputLayer, outputLayer, data, data.length, result)
-    if (expectedOutputSize == -1) result.take(outputSize) else result
-  }
-
-  def run(inputLayer: String, outputLayer: String, data: Array[Float]): Array[Float] =
-    run(inputLayer, outputLayer, data, -1)
-
-  def run(inputLayer: String, outputLayer: String, data: Array[Float], expectedOutputSize: Int): Array[Float] = {
-    val result = new Array[Float](if(expectedOutputSize == -1) maxSize else expectedOutputSize)
-    val outputSize = TensorFlowNative.tensorFlowNative.tfRunFloatArray(session, inputLayer, outputLayer, data, data.length, result)
-    if (expectedOutputSize == -1) result.take(outputSize) else result
+    val result = new Array[Float](expectedOutputSize)
+    val outputSize = TensorFlowNative.native.tfRunFloatArray(
+      session, inputLayer, outputLayer, data, data.length, result)
+    result.take(outputSize)
   }
 
   def close(): Unit = {
-    TensorFlowNative.tensorFlowNative.tfCloseSession(session)
+    TensorFlowNative.native.tfCloseSession(session)
   }
 
 }
 
 object TensorFlow {
-
   private def using[A, B <: { def close(): Unit }](closeable: B)(f: B => A): A = {
     try {
       f(closeable)
@@ -54,12 +51,9 @@ object TensorFlow {
       }
     }
   }
-
   def using[T](modelPath: String)(f: TensorFlow => T): T =
     using(new TensorFlow(modelPath))(f)
 
   def using[T](modelPath: String, maxSize: Int)(f: TensorFlow => T): T =
     using(new TensorFlow(modelPath, maxSize))(f)
-
 }
-
