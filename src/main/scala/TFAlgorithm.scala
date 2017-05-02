@@ -18,7 +18,27 @@ case class TFAlgorithmParams(
   val imageDir: String,
   val idToStringIdMap: String,
   val stringIdToLabelMap: String
-) extends Params
+) extends Params {
+
+  // Case class style copy method
+  def copy(
+    inputLayer: String = inputLayer,
+    outputLayer: String = outputLayer,
+    modelFilename: String = modelFilename,
+    imageDir: String = imageDir,
+    idToStringIdMap: String = idToStringIdMap,
+    stringIdToLabelMap: String = stringIdToLabelMap
+  ): TFAlgorithmParams = {
+
+    new TFAlgorithmParams(
+      inputLayer,
+      outputLayer,
+      modelFilename,
+      imageDir,
+      idToStringIdMap,
+      stringIdToLabelMap)
+  }
+}
 
 class TFAlgorithm(
   val ap: TFAlgorithmParams

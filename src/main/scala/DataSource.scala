@@ -41,8 +41,6 @@ object DataSourceUtils {
 
 case class DataSourceParams(
   appName: String,
-  labelMapFile: String,
-  categoryMapFile: String,
   evalK: Option[Int]
 ) extends Params
 
