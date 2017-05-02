@@ -1,6 +1,4 @@
-/*
-Wrapper around TensorflowNative.scala
-*/
+/* Wrapper around TensorflowNative.scala */
 
 package org.template.tensorflow
 
@@ -53,7 +51,4 @@ object TensorFlow {
   }
   def using[T](modelPath: String)(f: TensorFlow => T): T =
     using(new TensorFlow(modelPath))(f)
-
-  def using[T](modelPath: String, maxSize: Int)(f: TensorFlow => T): T =
-    using(new TensorFlow(modelPath, maxSize))(f)
 }
